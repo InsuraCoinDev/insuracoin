@@ -35,7 +35,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x");							//Basic beginning
+uint256 hashGenesisBlock("0x7d1e9afe9b602e71046519858199d6af3e8a6f98ddcade50d8a1a1a05f02e65a");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // Insuracoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2771,13 +2771,6 @@ bool InitBlockIndex() {
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
     if (!fReindex) {
-        // Genesis Block:
-        // CBlock(hash=12a765e31ffd4059bada, PoW=0000050c34a64b415b6b, ver=1, hashPrevBlock=00000000000000000000, hashMerkleRoot=97ddfbbae6, nTime=1317972665, nBits=1e0ffff0, nNonce=2084524493, vtx=1)
-        //   CTransaction(hash=97ddfbbae6, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-        //     CTxIn(COutPoint(0000000000, -1), coinbase 04ffff001d0104404e592054696d65732030352f4f63742f32303131205374657665204a6f62732c204170706c65e280997320566973696f6e6172792c2044696573206174203536)
-        //     CTxOut(nValue=50.00000000, scriptPubKey=040184710fa689ad5023690c80f3a4)
-        //   vMerkleTree: 97ddfbbae6
-
         // Genesis block
         const char* pszTimestamp = "CNBC 25/May/17 Bitcoin plunges more than $300";
         CTransaction txNew;
@@ -2791,9 +2784,9 @@ bool InitBlockIndex() {
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1495737895;						//Gotta add the next time, time rn
+        block.nTime    = 1495754031;						//Next addition, change from testnet settings
         block.nBits    = 0x1e0ffff0;
-        block.nNonce   = 0;
+        block.nNonce   = 1306961;
 
         if (fTestNet)
         {
@@ -2807,7 +2800,7 @@ bool InitBlockIndex() {
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
         assert(block.hashMerkleRoot == uint256("0x42c9d0c0d4e9264280c7b020b3ca3c9114227460335c7af97a06f8bdce95351b"));
-		if (true && block.GetHash() != hashGenesisBlock)
+		if (false && block.GetHash() != hashGenesisBlock)				//prevent accidental hashing of a genesis block by client
 		{
             printf("Searching for genesis block...\n");
             // This will figure out a valid hash and Nonce if you're
