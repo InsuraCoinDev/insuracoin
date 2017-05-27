@@ -14,8 +14,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
 
 using namespace std;
 using namespace boost;
@@ -1109,9 +1107,9 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-//Beginning injection of Scrypt-N-
 static const int64 nTargetTimespan = 4 * 60; // Insuracoin: 4 minutes
 static const int64 nTargetSpacing = 1 * 60; // Insuracoin: 1 minute
+static const int64 nAdjustmentInterval = 60 * 60 * 24;
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
 //
@@ -1138,8 +1136,7 @@ unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
         bnResult = bnProofOfWorkLimit;
     return bnResult.GetCompact();
 }
-
-// This is MIDAS (Multi Interval Difficulty Adjustment System), a novel getnextwork algorithm.  It responds quickly to
+   // This is MIDAS (Multi Interval Difficulty Adjustment System), a novel getnextwork algorithm.  It responds quickly to
 // huge changes in hashing power, is immune to time warp attacks, and regulates the block rate to keep the block height
 // close to the block height expected given the nominal block interval and the elapsed time.  How close the
 // correspondence between block height and wall clock time is, depends on how stable the hashing power has been.  Maybe
@@ -1148,39 +1145,39 @@ unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
 // It is important that none of these intervals (5, 7, 9, 17) have any common divisor; eliminating the existence of
 // harmonics is an important part of eliminating the effectiveness of timewarp attacks.
 void avgRecentTimestamps(const CBlockIndex* pindexLast, int64_t *avgOf5, int64_t *avgOf7, int64_t *avgOf9, int64_t *avgOf17)
-{
-  int blockoffset = 0;
-  int64_t oldblocktime;
-  int64_t blocktime;
+	{
+		int blockoffset = 0;
+		int64_t oldblocktime;
+		int64_t blocktime;
 
-  *avgOf5 = *avgOf7 = *avgOf9 = *avgOf17 = 0;
-  if (pindexLast)
-    blocktime = pindexLast->GetBlockTime();
-  else blocktime = 0;
+		*avgOf5 = *avgOf7 = *avgOf9 = *avgOf17 = 0;
+		if (pindexLast)
+			blocktime = pindexLast->GetBlockTime();
+		else blocktime = 0;
 
-  for (blockoffset = 0; blockoffset < 17; blockoffset++)
-  {
-    oldblocktime = blocktime;
-    if (pindexLast)
-    {
-      pindexLast = pindexLast->pprev;
-      blocktime = pindexLast->GetBlockTime();
-    }
-    else
-    { // genesis block or previous
-    blocktime -= nTargetSpacing;
-    }
-    // for each block, add interval.
-    if (blockoffset < 5) *avgOf5 += (oldblocktime - blocktime);
-    if (blockoffset < 7) *avgOf7 += (oldblocktime - blocktime);
-    if (blockoffset < 9) *avgOf9 += (oldblocktime - blocktime);
-    *avgOf17 += (oldblocktime - blocktime);    
-  }
-  // now we have the sums of the block intervals. Division gets us the averages. 
-  *avgOf5 /= 5;
-  *avgOf7 /= 7;
-  *avgOf9 /= 9;
-  *avgOf17 /= 17;
+		for (blockoffset = 0; blockoffset < 17; blockoffset++)
+		{
+			oldblocktime = blocktime;
+			if (pindexLast)
+				{
+					pindexLast = pindexLast->pprev;
+					blocktime = pindexLast->GetBlockTime();
+				}
+			else
+				{ // genesis block or previous
+					blocktime -= nTargetSpacing;
+				}	
+				// for each block, add interval.
+			if (blockoffset < 5) *avgOf5 += (oldblocktime - blocktime);
+			if (blockoffset < 7) *avgOf7 += (oldblocktime - blocktime);
+			if (blockoffset < 9) *avgOf9 += (oldblocktime - blocktime);
+			*avgOf17 += (oldblocktime - blocktime);    
+		}
+		// now we have the sums of the block intervals. Division gets us the averages. 
+		*avgOf5 /= 5;
+		*avgOf7 /= 7;
+		*avgOf9 /= 9;
+		*avgOf17 /= 17;
 }
 
 
@@ -1196,7 +1193,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex *pindexLast, const CBlockHead
     int64_t now;
     int64_t BlockHeightTime;
     int64_t genesisBlockNTime = 1495754031;
-    int64_t nAdjustmentInterval = (60 * 60 * 24);
 
     int64_t nFastInterval = (nTargetSpacing * 9 ) / 10; // seconds per block desired when far behind schedule
     int64_t nSlowInterval = (nTargetSpacing * 11) / 10; // seconds per block desired when far ahead of schedule
@@ -1204,26 +1200,25 @@ unsigned int GetNextWorkRequired(const CBlockIndex *pindexLast, const CBlockHead
 
     unsigned int nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
 
-    if (pindexLast == NULL) {
+    if (pindexLast == NULL)
         // Genesis Block
         return nProofOfWorkLimit;
-	}
+
     
     if (fTestNet)
     {
         // Special difficulty rule for testnet: If the new block's timestamp is more than 2* TargetSpacing then allow
         // mining of a min-difficulty block.
-        if (pblock->nTime > pindexLast->nTime + nTargetSpacing * 2) {
+        if (pblock->nTime > pindexLast->nTime + nTargetSpacing * 2)
            return nProofOfWorkLimit;
-	   }
-       else
-       {
+        else
+        {
             // Return the last non-special-min-difficulty-rules-block
            const CBlockIndex* pindex = pindexLast;
            while (pindex->pprev && pindex->nHeight % nIntervalDesired != 0 && pindex->nBits == nProofOfWorkLimit)
                pindex = pindex->pprev;
            return pindex->nBits;
-       }
+        }
     }
 
     // Regulate block times so as to remain synchronized in the long run with the actual time.  The first step is to
@@ -1231,29 +1226,22 @@ unsigned int GetNextWorkRequired(const CBlockIndex *pindexLast, const CBlockHead
     // schedule we are.  If we're more than an adjustment period ahead or behind, we use the maximum (nSlowInterval) or minimum
     // (nFastInterval) values; otherwise we calculate a weighted average somewhere in between them.  The closer we are
     // to being exactly on schedule the closer our selected interval will be to our nominal interval (TargetSpacing).
-
     now = pindexLast->GetBlockTime();
     BlockHeightTime = genesisBlockNTime + pindexLast->nHeight * nTargetSpacing;
     
-    if (now < BlockHeightTime + nAdjustmentInterval && now > BlockHeightTime ) {
+    if (now < BlockHeightTime + nAdjustmentInterval && now > BlockHeightTime )
     // ahead of schedule by less than one interval.
     nIntervalDesired = ((nAdjustmentInterval - (now - BlockHeightTime)) * nTargetSpacing + (now - BlockHeightTime) * nFastInterval) / nAdjustmentInterval;
-	}
     
-    else if (now + nAdjustmentInterval > BlockHeightTime && now < BlockHeightTime) {
+    else if (now + nAdjustmentInterval > BlockHeightTime && now < BlockHeightTime)
     // behind schedule by less than one interval.
     nIntervalDesired = ((nAdjustmentInterval - (BlockHeightTime - now)) * nTargetSpacing + (BlockHeightTime - now) * nSlowInterval) / nAdjustmentInterval;
-	}
-	
+
     // ahead by more than one interval;
-    else if (now < BlockHeightTime) {
-		nIntervalDesired = nSlowInterval;
-    }
+    else if (now < BlockHeightTime) nIntervalDesired = nSlowInterval;
     
     // behind by more than an interval. 
-    else  {
-		nIntervalDesired = nFastInterval;
-    }
+    else  nIntervalDesired = nFastInterval;
     
     // find out what average intervals over last 5, 7, 9, and 17 blocks have been. 
     avgRecentTimestamps(pindexLast, &avgOf5, &avgOf7, &avgOf9, &avgOf17);    
@@ -1275,7 +1263,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex *pindexLast, const CBlockHead
       difficultyfactor *= 8;
       difficultyfactor /= 5;
     }
-    
     else if (avgOf5 > tooslow && avgOf7 > tooslow && avgOf9 > tooslow)
     {  //emergency adjustment, speed up (shorter intervals because longer blocks)
       fprintf(stderr, "GetNextWorkRequired EMERGENCY RETARGET\n");
@@ -1284,45 +1271,38 @@ unsigned int GetNextWorkRequired(const CBlockIndex *pindexLast, const CBlockHead
     }
 
     // If no emergency adjustment, check for normal adjustment. 
-    else if (((avgOf5 > nIntervalDesired || avgOf7 > nIntervalDesired) && avgOf9 > nIntervalDesired && avgOf17 > nIntervalDesired) || ((avgOf5 < nIntervalDesired || avgOf7 < nIntervalDesired) && avgOf9 < nIntervalDesired && avgOf17 < nIntervalDesired))
+    else if (((avgOf5 > nIntervalDesired || avgOf7 > nIntervalDesired) && avgOf9 > nIntervalDesired && avgOf17 > nIntervalDesired) ||
+         ((avgOf5 < nIntervalDesired || avgOf7 < nIntervalDesired) && avgOf9 < nIntervalDesired && avgOf17 < nIntervalDesired))
     { // At least 3 averages too high or at least 3 too low, including the two longest. This will be executed 3/16 of
       // the time on the basis of random variation, even if the settings are perfect. It regulates one-sixth of the way
       // to the calculated point.
       fprintf(stderr, "GetNextWorkRequired RETARGET\n");
       difficultyfactor *= (6 * nIntervalDesired);
-      difficultyfactor /= (avgOf17 + (5 * nIntervalDesired));
+      difficultyfactor /= (avgOf17 +(5 * nIntervalDesired));
     }
 
     // limit to doubling or halving.  There are no conditions where this will make a difference unless there is an
     // unsuspected bug in the above code.
-    if (difficultyfactor > 20000) {
-		difficultyfactor = 20000;
-	}
-    
-    if (difficultyfactor < 5000) {
-		difficultyfactor = 5000;
-	}
+    if (difficultyfactor > 20000) difficultyfactor = 20000;
+    if (difficultyfactor < 5000) difficultyfactor = 5000;
 
     CBigNum bnNew;
     CBigNum bnOld;
 
     bnOld.SetCompact(pindexLast->nBits);
 
-    if (difficultyfactor == 10000) {
-		// no adjustment. 
+    if (difficultyfactor == 10000) // no adjustment. 
       return(bnOld.GetCompact());
-	}
-	
+
     bnNew = bnOld / difficultyfactor;
     bnNew *= 10000;
 
-    if (bnNew > nProofOfWorkLimit) {
+    if (bnNew > nProofOfWorkLimit)
       bnNew = nProofOfWorkLimit;
-	}
 
-    fprintf(stderr, "Actual time %d, Scheduled time for this block height = %d\n", now, BlockHeightTime );
-    fprintf(stderr, "Nominal block interval = %d, regulating on interval %d to get back to schedule.\n", nProofOfWorkLimit, nIntervalDesired );
-    fprintf(stderr, "Intervals of last 5/7/9/17 blocks = %d / %d / %d / %d.\n",avgOf5, avgOf7, avgOf9, avgOf17);
+    fprintf(stderr, "Actual time %d, Scheduled time for this block height = %d\n", now, BlockHeightTime);
+    fprintf(stderr, "Nominal block interval = %d, regulating on interval %d to get back to schedule.\n", nTargetSpacing, nIntervalDesired, 300);
+    fprintf(stderr, "Intervals of last 5/7/9/17 blocks = %d / %d / %d / %d.\n", avgOf5, avgOf7, avgOf9, avgOf17);
     fprintf(stderr, "Difficulty Before Adjustment: %08x  %s\n", pindexLast->nBits, bnOld.ToString());
     fprintf(stderr, "Difficulty After Adjustment:  %08x  %s\n", bnNew.GetCompact(), bnNew.ToString());
 
