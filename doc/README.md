@@ -1,8 +1,9 @@
-Insuracoin 0.8.x BETA
+Insuracoin 1.0.0 BETA
 ====================
 
 Copyright (c) 2009-2014 Bitcoin Developers
 Copyright (c) 2011-2014 Litecoin Developers
+Copyright (c) 2017 Insuracoin Developers
 
 Distributed under the MIT/X11 software license, see the accompanying
 file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -39,9 +40,4 @@ Other Pages
 - [Unix Build Notes](build-unix.md)
 - [OSX Build Notes](build-osx.md)
 - [Windows Build Notes](build-msw.md)
-- [Coding Guidelines](coding.md)
-- [Release Process](release-process.md)
 - [Release Notes](release-notes.md)
-- [Multiwallet Qt Development](multiwallet-qt.md)
-- [Unit Tests](unit-tests.md)
-- [Translation Process](translation_process.md)

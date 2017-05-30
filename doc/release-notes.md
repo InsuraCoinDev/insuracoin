@@ -1,3 +1,18 @@
+Insuracoin 1.0.0 changes
+=============
+- Enforce v2 blocks at height 710000 on mainnet, 400000 on testnet
+- Add `-maxorphantx=<n>` and `-maxorphanblocks=<n>` options for control over the maximum orphan transactions and blocks
+- Stricter memory limits on CNode
+- Upgrade OpenSSL to 1.0.1i (see https://www.openssl.org/news/secadv_20140806.txt - just to be sure, no critical issues
+- Upgrade hashing algorithm to Scrypt-N for ASIC resistance with Nfactor implementation
+- Update to the MIDAS next block difficulty adjustment system
+- Update with additional logging and unit tests
+- Change block settings, times, requirements, and other information
+- Other bug fixes and other general changes in the implementation of Insuracoin
+
+Insuracoin Fork from Bitcoin/Litecoin Source
+=========================================================================================================================
+
 0.8.7.4 changes
 =============
 - Enforce v2 blocks at height 710000 on mainnet, 400000 on testnet
