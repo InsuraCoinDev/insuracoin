@@ -1,4 +1,4 @@
-//
+//Copyright (c) Insuracoin Developers
 // Alert system
 //Edited in new pszMainKey for Alerts
 

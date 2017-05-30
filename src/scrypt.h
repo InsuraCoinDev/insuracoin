@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 //NScrypt Injection
-//Just replaced all scrypt_1024 with scrypt_N and proper parameter UCHAR Nfactor
 static const int SCRYPT_SCRATCHPAD_SIZE = 131072 + 63;
 
 void scrypt_N_1_1_256(const char *input, char *output, unsigned char Nfactor);

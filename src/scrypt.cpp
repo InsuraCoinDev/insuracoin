@@ -26,6 +26,7 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
+// With Insuracoin Developer additions, alterations
 
 #include "scrypt.h"
 #include "util.h"
