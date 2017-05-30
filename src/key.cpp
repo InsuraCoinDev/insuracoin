@@ -25,15 +25,15 @@ int EC_KEY_regenerate_key(EC_KEY *eckey, BIGNUM *priv_key)
 
     if ((ctx = BN_CTX_new()) == NULL)
         goto err;
-
+	//Damn damn, gotos everywhere
     pub_key = EC_POINT_new(group);
 
     if (pub_key == NULL)
         goto err;
-
+	//Damn damn, gotos everywhere
     if (!EC_POINT_mul(group, pub_key, priv_key, NULL, NULL, ctx))
         goto err;
-
+	//Damn damn, gotos everywhere
     EC_KEY_set_private_key(eckey,priv_key);
     EC_KEY_set_public_key(eckey,pub_key);
 
